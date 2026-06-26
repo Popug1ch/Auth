@@ -1,5 +1,6 @@
 from typing import List, Optional
-from sqlalchemy import Integer, String, Boolean, Table, ForeignKey, Column
+from datetime import datetime
+from sqlalchemy import Integer, String, Boolean, Table, ForeignKey, Column, Text, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
@@ -26,6 +27,8 @@ class User(Base):
     last_name: Mapped[str] = mapped_column(String(100))
     father_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.now)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     roles: Mapped[List["Role"]] = relationship(secondary=user_roles, back_populates="users")
 
 class Role(Base):
@@ -44,3 +47,9 @@ class Permission(Base):
     name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     description: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     roles: Mapped[List["Role"]] = relationship(secondary=role_permissions, back_populates="permissions")
+
+class BlacklistedToken(Base):
+    __tablename__ = "blacklisted_tokens"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    token: Mapped[str] = mapped_column(Text, unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
