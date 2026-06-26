@@ -1,10 +1,10 @@
 from sqlalchemy import select
 from app.models import User
 
-async def create_user(session, email, password, first_name, last_name, father_name=None):
+async def create_user(session, email, hashed_password, first_name, last_name, father_name=None):
     user = User(
         email=email,
-        hashed_password=password,
+        hashed_password=hashed_password,
         first_name=first_name,
         last_name=last_name,
         father_name=father_name,
