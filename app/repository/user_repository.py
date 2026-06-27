@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import User
 from app.auth import hash_password
 
+
 class UserRepository:
     @staticmethod
     async def get_by_email(session: AsyncSession, email: str) -> User | None:
@@ -17,7 +18,14 @@ class UserRepository:
         return result.scalars().first()
 
     @staticmethod
-    async def create(session: AsyncSession, email: str, password: str, first_name: str, last_name: str, father_name: str = None) -> User:
+    async def create(
+        session: AsyncSession,
+        email: str,
+        password: str,
+        first_name: str,
+        last_name: str,
+        father_name: str = None,
+    ) -> User:
         hashed = hash_password(password)
         user = User(
             email=email,
@@ -25,7 +33,7 @@ class UserRepository:
             first_name=first_name,
             last_name=last_name,
             father_name=father_name,
-            is_active=True
+            is_active=True,
         )
         session.add(user)
         await session.commit()

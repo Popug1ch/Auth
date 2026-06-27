@@ -8,15 +8,17 @@ from app.auth import hash_password
 
 router = APIRouter(prefix="/users", tags=["users"])
 
+
 @router.get("/me", response_model=UserOut)
 async def get_me(current_user: User = Depends(get_current_active_user)):
     return current_user
+
 
 @router.put("/me", response_model=UserOut)
 async def update_me(
     update_data: UserUpdate,
     session: SessionDep,
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_active_user),
 ):
     if update_data.email:
         existing = await UserRepository.get_by_email(session, update_data.email)
@@ -32,10 +34,10 @@ async def update_me(
     await session.refresh(current_user)
     return current_user
 
+
 @router.delete("/me", status_code=204)
 async def delete_me(
-    session: SessionDep,
-    current_user: User = Depends(get_current_active_user)
+    session: SessionDep, current_user: User = Depends(get_current_active_user)
 ):
     await UserRepository.deactivate(session, current_user)
     return

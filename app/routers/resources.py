@@ -3,6 +3,7 @@ from app.dependencies import require_permission
 
 router = APIRouter(prefix="/resources", tags=["resources"])
 
+
 @router.get("/")
 async def list_resources(_=Depends(require_permission("resource", "read"))):
     return [
