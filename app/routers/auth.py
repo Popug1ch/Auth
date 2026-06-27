@@ -8,9 +8,10 @@ from app.auth import (
     create_access_token,
     add_token_to_blacklist,
     decode_token,
+    hash_password,
 )
 from app.dependencies import oauth2_scheme
-from app.models import Role
+from app.models import Role, User
 from datetime import datetime
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -21,20 +22,26 @@ async def register(user_data: UserCreate, session: SessionDep):
     existing = await UserRepository.get_by_email(session, user_data.email)
     if existing:
         raise HTTPException(400, "Email already registered")
-    user = await UserRepository.create(
-        session,
-        email=user_data.email,
-        password=user_data.password,
-        first_name=user_data.first_name,
-        last_name=user_data.last_name,
-        father_name=user_data.father_name,
-    )
+
     stmt = select(Role).where(Role.name == "user")
     result = await session.execute(stmt)
     role = result.scalars().first()
-    if role:
-        user.roles.append(role)
-        await session.commit()
+    if not role:
+        raise HTTPException(500, "Role 'user' not found")
+
+    hashed = hash_password(user_data.password)
+    user = User(
+        email=user_data.email,
+        hashed_password=hashed,
+        first_name=user_data.first_name,
+        last_name=user_data.last_name,
+        father_name=user_data.father_name,
+        is_active=True,
+        roles=[role],
+    )
+    session.add(user)
+    await session.commit()
+
     token = create_access_token({"sub": str(user.id)})
     return {"access_token": token, "token_type": "bearer"}
 

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from typing import List
 from app.database import SessionDep
 from app.dependencies import require_admin
@@ -19,16 +20,18 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 @router.get("/users", response_model=List[UserWithRoles])
 async def list_users(session: SessionDep, _=Depends(require_admin)):
-    stmt = select(User)
+    stmt = select(User).options(selectinload(User.roles).selectinload(Role.permissions))
     result = await session.execute(stmt)
-    return result.scalars().all()
+    users = result.scalars().all()
+    return users
 
 
 @router.get("/roles", response_model=List[RoleOut])
 async def list_roles(session: SessionDep, _=Depends(require_admin)):
-    stmt = select(Role)
+    stmt = select(Role).options(selectinload(Role.permissions))
     result = await session.execute(stmt)
-    return result.scalars().all()
+    roles = result.scalars().all()
+    return roles
 
 
 @router.post("/roles", response_model=RoleOut, status_code=201)

@@ -37,20 +37,6 @@ class UserUpdate(BaseModel):
     password: Optional[str] = Field(None, min_length=6)
 
 
-class UserOut(BaseModel):
-    id: int
-    email: str
-    first_name: str
-    last_name: str
-    father_name: Optional[str]
-    is_active: bool
-    created_at: datetime
-    updated_at: Optional[datetime]
-
-    class Config:
-        from_attributes = True
-
-
 class PermissionCreate(BaseModel):
     resource: str
     action: str
@@ -82,6 +68,21 @@ class RoleOut(BaseModel):
     name: str
     description: Optional[str]
     permissions: List[PermissionOut] = []
+
+    class Config:
+        from_attributes = True
+
+
+class UserOut(BaseModel):
+    id: int
+    email: str
+    first_name: str
+    last_name: str
+    father_name: Optional[str]
+    is_active: bool
+    created_at: datetime
+    updated_at: Optional[datetime]
+    roles: List["RoleOut"] = []
 
     class Config:
         from_attributes = True
