@@ -1,4 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
+from app.database import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.database import SessionDep
 from app.schemas import UserCreate, UserLogin, Token
@@ -66,3 +69,16 @@ async def logout(session: SessionDep, token: str = Depends(oauth2_scheme)):
         expires_at = datetime.utcfromtimestamp(payload.get("exp"))
         await add_token_to_blacklist(session, token, expires_at)
     return
+
+
+@router.post("/token", response_model=Token)
+async def login_for_swagger(
+    form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)
+):
+    user = await UserRepository.get_by_email(db, form_data.username)
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(401, "Invalid credentials")
+    if not user.is_active:
+        raise HTTPException(401, "User inactive")
+    token = create_access_token({"sub": str(user.id)})
+    return {"access_token": token, "token_type": "bearer"}

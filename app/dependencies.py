@@ -7,7 +7,7 @@ from app.database import get_db
 from app.auth import decode_token, is_token_blacklisted
 from app.models import User, Role
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token", auto_error=False)
 
 
 async def get_current_user(
